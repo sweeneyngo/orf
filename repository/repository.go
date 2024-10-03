@@ -11,9 +11,9 @@ import (
 )
 
 type Repo struct {
-	workTree  string
-	directory string
-	config    *ini.File
+	WorkTree  string
+	Directory string
+	Config    *ini.File
 }
 
 func InitializeRepo(path string, force bool) (*Repo, error) {
@@ -25,7 +25,7 @@ func InitializeRepo(path string, force bool) (*Repo, error) {
 	}
 
 	// Get configuration path
-	configPath, err := getFile(path, force, "config")
+	configPath, err := GetFile(path, force, "config")
 	if err != nil {
 		return nil, fmt.Errorf("error getting config path: %w", err)
 	}
@@ -37,9 +37,9 @@ func InitializeRepo(path string, force bool) (*Repo, error) {
 	}
 
 	return &Repo{
-		workTree:  path,
-		directory: directory,
-		config:    config,
+		WorkTree:  path,
+		Directory: directory,
+		Config:    config,
 	}, nil
 }
 
@@ -51,19 +51,19 @@ func CreateRepo(path string) (*Repo, error) {
 		return nil, errors.New("error creating repo")
 	}
 
-	if info, err := os.Stat(repo.workTree); err == nil {
+	if info, err := os.Stat(repo.WorkTree); err == nil {
 
 		if !info.IsDir() {
-			return nil, fmt.Errorf("not a directory: %s", repo.workTree)
+			return nil, fmt.Errorf("not a directory: %s", repo.WorkTree)
 		}
 
-		if _, err := os.Stat(repo.directory); err == nil {
-			if entries, err := os.ReadDir(repo.directory); err == nil && len(entries) > 0 {
-				return nil, fmt.Errorf("%s is not empty", repo.directory)
+		if _, err := os.Stat(repo.Directory); err == nil {
+			if entries, err := os.ReadDir(repo.Directory); err == nil && len(entries) > 0 {
+				return nil, fmt.Errorf("%s is not empty", repo.Directory)
 			}
 		}
 	} else {
-		if err := os.MkdirAll(repo.workTree, os.ModePerm); err != nil {
+		if err := os.MkdirAll(repo.WorkTree, os.ModePerm); err != nil {
 			return nil, err
 		}
 	}
@@ -77,26 +77,26 @@ func CreateRepo(path string) (*Repo, error) {
 	}
 
 	for _, directory := range directories {
-		path := filepath.Join(repo.workTree, ".orf", directory)
+		path := filepath.Join(repo.WorkTree, ".orf", directory)
 		if err := os.MkdirAll(path, os.ModePerm); err != nil {
 			return nil, err
 		}
 	}
 
 	// Create .orf/description
-	descriptionPath := filepath.Join(repo.workTree, ".orf", "description")
+	descriptionPath := filepath.Join(repo.WorkTree, ".orf", "description")
 	if err := os.WriteFile(descriptionPath, []byte("Unnamed repository; edit this file 'description' to name the repository.\n"), 0644); err != nil {
 		return nil, err
 	}
 
 	// Create .orf/HEAD
-	headPath := filepath.Join(repo.workTree, ".orf", "HEAD")
+	headPath := filepath.Join(repo.WorkTree, ".orf", "HEAD")
 	if err := os.WriteFile(headPath, []byte("ref: refs/heads/master\n"), 0644); err != nil {
 		return nil, err
 	}
 
 	// Create .orf/config
-	configPath := filepath.Join(repo.workTree, ".orf", "config")
+	configPath := filepath.Join(repo.WorkTree, ".orf", "config")
 	configContent := strings.ReplaceAll(`[core]
 		repositoryformatversion = 0
 		filemode = false
@@ -126,6 +126,15 @@ func FindRepo(path string, force bool) (*Repo, error) {
 	return FindRepo(parentPath, force)
 }
 
+func GetFile(WorkTree string, force bool, paths ...string) (string, error) {
+
+	if _, err := getDir(WorkTree, force, paths[:len(paths)-1]...); err != nil {
+		return "", err
+	}
+
+	return getPath(WorkTree, paths...), nil
+}
+
 func isFile(path string) bool {
 	info, err := os.Stat(path)
 
@@ -146,22 +155,13 @@ func isDir(path string) bool {
 	return info.IsDir()
 }
 
-func getPath(workTree string, paths ...string) string {
-	return filepath.Join(append([]string{workTree}, paths...)...)
+func getPath(WorkTree string, paths ...string) string {
+	return filepath.Join(append([]string{WorkTree}, paths...)...)
 }
 
-func getFile(workTree string, force bool, paths ...string) (string, error) {
+func getDir(WorkTree string, force bool, paths ...string) (string, error) {
 
-	if _, err := getDir(workTree, force, paths[:len(paths)-1]...); err != nil {
-		return "", err
-	}
-
-	return getPath(workTree, paths...), nil
-}
-
-func getDir(workTree string, force bool, paths ...string) (string, error) {
-
-	path := getPath(workTree, paths...)
+	path := getPath(WorkTree, paths...)
 	info, err := os.Stat(path)
 
 	if err != nil {

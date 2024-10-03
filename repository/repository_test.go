@@ -21,9 +21,9 @@ func TestInitializeForceRepo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, repo)
 
-	assert.Equal(t, path, repo.workTree)
-	assert.Equal(t, filepath.Join(path, ".orf"), repo.directory)
-	assert.Nil(t, repo.config)
+	assert.Equal(t, path, repo.WorkTree)
+	assert.Equal(t, filepath.Join(path, ".orf"), repo.Directory)
+	assert.Nil(t, repo.Config)
 }
 
 func TestCreateRepo(t *testing.T) {
@@ -66,8 +66,8 @@ func TestFindRepo_RootRepository(t *testing.T) {
 	repo, err := FindRepo(path, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, repo)
-	assert.Equal(t, path, repo.workTree)
-	assert.Equal(t, repoPath, repo.directory)
+	assert.Equal(t, path, repo.WorkTree)
+	assert.Equal(t, repoPath, repo.Directory)
 }
 
 func TestFindRepo(t *testing.T) {
@@ -85,8 +85,8 @@ func TestFindRepo(t *testing.T) {
 	repo, err := FindRepo(childPath, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, repo)
-	assert.Equal(t, path, repo.workTree)
-	assert.Equal(t, repoPath, repo.directory)
+	assert.Equal(t, path, repo.WorkTree)
+	assert.Equal(t, repoPath, repo.Directory)
 }
 
 func TestIsFile(t *testing.T) {
@@ -112,14 +112,14 @@ func TestGetPath(t *testing.T) {
 
 func TestGetFile(t *testing.T) {
 	workTree := t.TempDir()
-	filePath, err := getFile(workTree, false, "subdir", "file")
+	filePath, err := GetFile(workTree, false, "subdir", "file")
 	assert.Error(t, err)
 	assert.Equal(t, "", filePath)
 }
 
 func TestGetForceFile(t *testing.T) {
 	workTree := t.TempDir()
-	filePath, err := getFile(workTree, true, "subdir", "file")
+	filePath, err := GetFile(workTree, true, "subdir", "file")
 	assert.NoError(t, err)
 	assert.Equal(t, filepath.Join(workTree, "subdir", "file"), filePath)
 }
