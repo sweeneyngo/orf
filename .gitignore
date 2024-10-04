@@ -1,2 +1,11 @@
 # Output for testing
 .orf/
+objects/*
+test*
+
+# Coverage
+coverage.out
+coverage.html
+
+# Build
+orf

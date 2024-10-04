@@ -1,12 +1,18 @@
 package repository
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+// mocks
+func MockGetFile(path string, force bool, name string) (string, error) {
+	return "", errors.New("file not found") // Simulate an error
+}
 
 func TestInitializeRepo(t *testing.T) {
 	path := t.TempDir()
@@ -25,6 +31,26 @@ func TestInitializeForceRepo(t *testing.T) {
 	assert.Equal(t, filepath.Join(path, ".orf"), repo.Directory)
 	assert.Nil(t, repo.Config)
 }
+
+// func TestInitializeRepo_ErrorGettingConfigPath(t *testing.T) {
+// 	// Replace GetFile with the mock version
+// 	originalGetFile := GetFile
+// 	defer func() { GetFile = originalGetFile }() // Restore original function after test
+// 	GetFile = MockGetFile
+
+// 	// Call the function under test
+// 	_, err := InitializeRepo("some/path", false)
+
+// 	// Check if the error is as expected
+// 	if err == nil {
+// 		t.Fatal("expected an error but got none")
+// 	}
+
+// 	// Check if the error message matches the expected error
+// 	if !errors.Is(err, errors.New("file not found")) {
+// 		t.Errorf("expected error 'file not found', got: %v", err)
+// 	}
+// }
 
 func TestCreateRepo(t *testing.T) {
 	path := t.TempDir()

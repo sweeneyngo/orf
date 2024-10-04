@@ -11,7 +11,6 @@ import (
 	"orf/repository"
 	"os"
 	"path/filepath"
-	"strconv"
 )
 
 type Object struct {
@@ -22,12 +21,12 @@ type Object struct {
 
 // ReadObject reads an object hash (SHA-256) from a .orf repository and returns an Object.
 // The type of the returned Object depends on the object associated with the given hash.
-func ReadObject(workTree string, hash string) (*Object, error) {
+func ReadObject(directory string, hash string) (*Object, error) {
 
 	hashDir := hash[0:2]
 	hashFile := hash[2:]
 
-	path, err := repository.GetFile(workTree, false, "objects", hashDir, hashFile)
+	path, err := repository.GetFile(directory, false, "objects", hashDir, hashFile)
 	if err != nil {
 		return nil, err
 	}
@@ -61,63 +60,54 @@ func ReadObject(workTree string, hash string) (*Object, error) {
 	objectFormat := string(data[:formatIndex])
 
 	// Get object size
-	sizeIndex := bytes.IndexByte(data, '\x00')
-	if sizeIndex == -1 {
-		return nil, fmt.Errorf("invalid object size index")
+	startSizeIndex := formatIndex + 1
+	endSizeIndex := formatIndex + 5
+
+	size := int(binary.BigEndian.Uint32(data[startSizeIndex:endSizeIndex]))
+
+	// Get object data
+	dataIndex := bytes.IndexByte(data[endSizeIndex:], '\x00')
+	if dataIndex == -1 {
+		return nil, fmt.Errorf("invalid data format index")
 	}
 
-	size, err := strconv.Atoi(string(data[formatIndex:sizeIndex]))
-	if err != nil {
-		return nil, fmt.Errorf("invalid object size: %v", err)
-	}
+	// Convert data index to absolute index
+	dataIndex = endSizeIndex + dataIndex
 
-	if size < 0 || size > int(^uint32(0)) {
-		return nil, fmt.Errorf("value out of range for uint32 conversion")
-	}
-
-	if size != len(data)-(sizeIndex-1) {
+	if size != len(data)-(dataIndex+1) {
 		return nil, fmt.Errorf("object size mismatch")
 	}
 
-	// objectSize := uint32(size)
-
+	// Create object based on format
 	switch objectFormat {
-	// case "commit":
-	// 	c := CreateCommit(data[sizeIndex+1:])
-	// 	return c, nil
-	// case "tree":
-	// 	c := CreateTree(data[sizeIndex+1:])
-	// 	return c, nil
-	// case "tag":
-	// 	c := CreateTag(data[sizeIndex+1:])
-	// 	return c, nil
-	// case "blob":
-	// 	c := CreateBlob(data[sizeIndex+1:])
-	// 	return c, nil
+	case "blob":
+		c := CreateBlob(data[dataIndex+1:])
+		return &c.Object, nil
 	default:
 		return nil, fmt.Errorf("unknown object type: %s", objectFormat)
 	}
 }
 
-func WriteObject(workTree string, object *Object) (string, error) {
+func WriteObject(directory string, object *Object) (string, error) {
 
 	header := []byte(object.format + " ")
 	length := make([]byte, 4)
 	binary.BigEndian.PutUint32(length, object.size)
 
 	result := append(header, length...)
-	result = append(result, 0)
+	result = append(result, '\x00')
 	result = append(result, object.Data...)
 
 	sha := sha256.Sum256(result)
 	shaHex := hex.EncodeToString(sha[:])
 
-	if workTree == "" {
-		return "", fmt.Errorf("no orf worktree path found")
+	if directory == "" {
+		// Return hex if no .orf path specified
+		return shaHex, nil
 	}
 
-	dirPath := filepath.Join(workTree, "objects", shaHex[:2])
-	filePath := filepath.Join(workTree, "objects", shaHex[:2], shaHex[2:])
+	dirPath := filepath.Join(directory, "objects", shaHex[:2])
+	filePath := filepath.Join(directory, "objects", shaHex[:2], shaHex[2:])
 
 	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
 		return "", fmt.Errorf("no directory with path %v found: %w", dirPath, err)

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"orf/object"
+	"orf/cmd"
 	"orf/repository"
 	"os"
 )
@@ -44,31 +44,56 @@ func main() {
 		initCmd.Parse(os.Args[2:])
 
 		if initCmd.NArg() < 2 {
-			fmt.Println("expected format and object argument")
+			fmt.Println("expected format and hash argument")
 			os.Exit(1)
 		}
 
 		formatArg := initCmd.Arg(0)
-		objectArg := initCmd.Arg(1)
+		hashArg := initCmd.Arg(1)
 
 		if !contains([]string{"blob", "commit", "tag", "tree"}, formatArg) {
 			fmt.Println("incorrect format argument")
 			os.Exit(1)
 		}
 
-		repo, err := repository.FindRepo(".", true)
+		obj, err := cmd.CatObject(hashArg)
 		if err != nil {
-			fmt.Printf("error finding repo: %v\n", err)
+			fmt.Printf("error returning object: %v/n", err)
 			os.Exit(1)
 		}
 
-		newObject, err := object.ReadObject(repo.WorkTree, objectArg)
-		if err != nil {
-			fmt.Printf("error reading object: %v\n", err)
+		fmt.Printf("%s\n", string(obj.Data))
+
+	case "hash":
+		initCmd := flag.NewFlagSet("hash", flag.ExitOnError)
+
+		// Define the flags
+		writeFlag := initCmd.Bool("w", false, "Write to a file")
+		formatFlag := initCmd.String("format", "blob", "Specify the format (blob, commit, tag, tree)")
+
+		// Validate the formatFlag
+		if !contains([]string{"blob", "commit", "tag", "tree"}, *formatFlag) {
+			fmt.Println("incorrect type argument")
 			os.Exit(1)
 		}
 
-		fmt.Println(newObject.Data)
+		// Parse the flags
+		initCmd.Parse(os.Args[2:])
+
+		if initCmd.NArg() < 1 {
+			fmt.Println("expected path argument")
+			os.Exit(1)
+		}
+
+		pathArg := initCmd.Arg(0)
+
+		hash, err := cmd.HashObject(pathArg, *formatFlag, *writeFlag)
+		if err != nil {
+			fmt.Printf("error writing object: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("Object written with hash: %s\n", hash)
 
 	case "log":
 		logCmd := flag.NewFlagSet("log", flag.ExitOnError)
