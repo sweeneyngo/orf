@@ -24,13 +24,13 @@ import (
 	"bytes"
 	"compress/zlib"
 	"crypto/sha256"
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"orf/repository"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 // Defines the basic methods that any object type must implement (Blob, Commit, Tag, Tree).
@@ -103,7 +103,10 @@ func ReadObject(directory string, hash string) (Object, error) {
 	startSizeIndex := formatIndex + 1
 	endSizeIndex := formatIndex + 5
 
-	size := int(binary.BigEndian.Uint32(data[startSizeIndex:endSizeIndex]))
+	size, err := strconv.Atoi(string(data[startSizeIndex:endSizeIndex]))
+	if err != nil {
+		return nil, fmt.Errorf("invalid size format: %v", err)
+	}
 
 	// Get object data
 	dataIndex := bytes.IndexByte(data[endSizeIndex:], '\x00')
@@ -114,6 +117,7 @@ func ReadObject(directory string, hash string) (Object, error) {
 	// Convert data index to absolute index
 	dataIndex = endSizeIndex + dataIndex
 
+	fmt.Println(data, size, dataIndex)
 	if size != len(data)-(dataIndex+1) {
 		return nil, fmt.Errorf("object size mismatch")
 	}
@@ -132,8 +136,7 @@ func ReadObject(directory string, hash string) (Object, error) {
 func WriteObject(directory string, object Object) (string, error) {
 
 	header := []byte(object.GetFormat() + " ")
-	length := make([]byte, 4)
-	binary.BigEndian.PutUint32(length, object.GetSize())
+	length := fmt.Sprintf("%04d", object.GetSize())
 
 	result := append(header, length...)
 	result = append(result, '\x00')

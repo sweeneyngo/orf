@@ -1,7 +1,7 @@
 # Output for testing
 .orf/
 objects/*
-test*
+test.*
 
 # Coverage
 coverage.out

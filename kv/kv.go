@@ -3,6 +3,7 @@ package kv
 import (
 	"bytes"
 	"fmt"
+	"orf/utils"
 	"strings"
 )
 
@@ -41,10 +42,10 @@ func Parse(rawData []byte, startIndex int, dct *OrderedMap) (*OrderedMap, error)
 		}
 	}
 
-	spaceIndex := bytes.IndexByte(rawData[startIndex:], ' ')
-	newLineIndex := bytes.IndexByte(rawData[startIndex:], '\n')
+	spaceIndex := utils.FindIndex(rawData, startIndex, ' ')
+	newLineIndex := utils.FindIndex(rawData, startIndex, '\n')
 
-	if spaceIndex < 0 || newLineIndex < 0 || newLineIndex < spaceIndex {
+	if spaceIndex < 0 || newLineIndex < spaceIndex {
 		// Found a message (end of key-value pairs)
 		if newLineIndex == startIndex {
 			// Store message after the new line
@@ -54,18 +55,15 @@ func Parse(rawData []byte, startIndex int, dct *OrderedMap) (*OrderedMap, error)
 	}
 
 	// Base case: found the key-value pair
-	key := string(rawData[startIndex : startIndex+spaceIndex])
-
-	// Move the end pointer to the value, handling continuation lines
+	key := string(rawData[startIndex:spaceIndex])
 	endIndex := startIndex
 	for {
-		endIndex = endIndex + bytes.IndexByte(rawData[endIndex:], '\n')
+		endIndex = utils.FindIndex(rawData, endIndex+1, '\n')
 		// Check if it's the end of continuation line
 		if rawData[endIndex+1] != ' ' {
 			break
 		}
 	}
-
 	value := string(bytes.TrimSpace(rawData[spaceIndex+1 : endIndex]))
 
 	// Check if the key already exists in the map
