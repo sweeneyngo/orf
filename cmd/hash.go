@@ -34,11 +34,11 @@ func HashObject(path string, format string, store bool) (string, error) {
 
 func getHash(data []byte, format string, directory string) (string, error) {
 
-	var o *object.Object
+	var o object.Object
 	switch format {
 	case "blob":
 		blob := object.CreateBlob(data)
-		o = &blob.Object
+		o = blob
 	default:
 		return "", fmt.Errorf("invalid format")
 	}

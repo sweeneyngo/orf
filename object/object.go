@@ -1,3 +1,23 @@
+/*
+Package object provides functionality for handling objects within a .orf repository.
+Objects are fundamental units of storage in the repository, and they can be of various types such as blobs, commits, trees, and tags.
+
+The Object interface defines the basic methods that any object type must implement:
+- GetFormat() string: Returns the format/type of the object (e.g., "blob", "commit").
+- GetSize() uint32: Returns the size of the object data.
+- GetData() []byte: Returns the raw data of the object.
+
+The Base struct is a concrete implementation of the Object interface and serves as a base type for other specific object types. It includes:
+- format: A string representing the format/type of the object.
+- size: A uint32 representing the size of the object data.
+- data: A byte slice containing the raw data of the object.
+
+Specific object types such as Commit, Blob, Tree, and Tag can embed the Base struct to inherit its fields and methods, while also adding their own specific fields and methods.
+
+The ReadObject function reads an object from a .orf repository given its hash and returns an Object. The type of the returned Object depends on the format of the object associated with the given hash.
+
+The WriteObject function writes an Object to a .orf repository and returns the SHA-256 hash of the written object. If the directory is not specified, it returns the hash without writing the object to the repository.
+*/
 package object
 
 import (
@@ -13,15 +33,35 @@ import (
 	"path/filepath"
 )
 
-type Object struct {
+// Defines the basic methods that any object type must implement (Blob, Commit, Tag, Tree).
+type Object interface {
+	GetFormat() string
+	GetSize() uint32
+	GetData() []byte
+}
+
+// Simplest form of Object, all objects derive from Base.
+type Base struct {
 	format string
 	size   uint32
-	Data   []byte
+	data   []byte
+}
+
+func (base *Base) GetFormat() string {
+	return base.format
+}
+
+func (base *Base) GetSize() uint32 {
+	return base.size
+}
+
+func (base *Base) GetData() []byte {
+	return base.data
 }
 
 // ReadObject reads an object hash (SHA-256) from a .orf repository and returns an Object.
 // The type of the returned Object depends on the object associated with the given hash.
-func ReadObject(directory string, hash string) (*Object, error) {
+func ReadObject(directory string, hash string) (Object, error) {
 
 	hashDir := hash[0:2]
 	hashFile := hash[2:]
@@ -81,22 +121,23 @@ func ReadObject(directory string, hash string) (*Object, error) {
 	// Create object based on format
 	switch objectFormat {
 	case "blob":
-		c := CreateBlob(data[dataIndex+1:])
-		return &c.Object, nil
+		return CreateBlob(data[dataIndex+1:]), nil
+	case "commit":
+		return CreateCommit(data[dataIndex+1:]), nil
 	default:
 		return nil, fmt.Errorf("unknown object type: %s", objectFormat)
 	}
 }
 
-func WriteObject(directory string, object *Object) (string, error) {
+func WriteObject(directory string, object Object) (string, error) {
 
-	header := []byte(object.format + " ")
+	header := []byte(object.GetFormat() + " ")
 	length := make([]byte, 4)
-	binary.BigEndian.PutUint32(length, object.size)
+	binary.BigEndian.PutUint32(length, object.GetSize())
 
 	result := append(header, length...)
 	result = append(result, '\x00')
-	result = append(result, object.Data...)
+	result = append(result, object.GetData()...)
 
 	sha := sha256.Sum256(result)
 	shaHex := hex.EncodeToString(sha[:])

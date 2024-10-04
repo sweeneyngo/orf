@@ -6,7 +6,7 @@ import (
 	"orf/repository"
 )
 
-func CatObject(hash string) (*object.Object, error) {
+func CatObject(hash string) (object.Object, error) {
 	repo, err := repository.FindRepo(".", true)
 	if err != nil {
 		return nil, fmt.Errorf("error finding repo: %v", err)

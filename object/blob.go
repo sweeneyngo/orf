@@ -1,23 +1,36 @@
 package object
 
 type Blob struct {
-	Object
+	Base
 }
 
+func (blob *Blob) GetFormat() string {
+	return blob.format
+}
+
+func (blob *Blob) GetSize() uint32 {
+	return blob.size
+}
+
+func (blob *Blob) GetData() []byte {
+	return blob.data
+}
+
+// Creates a new Blob object.
 func CreateBlob(data []byte) *Blob {
 	return &Blob{
-		Object: Object{
+		Base: Base{
 			format: "blob",            // Set the format for a blob
 			size:   uint32(len(data)), // Set the size based on the data length
-			Data:   data,              // Set the data directly in the Object
+			data:   data,              // Set the data directly in the Object
 		},
 	}
 }
 
 func (blob *Blob) Serialize() []byte {
-	return blob.Data
+	return blob.data
 }
 
 func (blob *Blob) Deserialize(data []byte) {
-	blob.Data = data
+	blob.data = data
 }

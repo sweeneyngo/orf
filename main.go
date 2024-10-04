@@ -58,7 +58,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("%s\n", string(obj.Data))
+		fmt.Printf("%s\n", string(obj.GetData()))
 		os.Exit(1)
 
 	case "hash":

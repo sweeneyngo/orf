@@ -11,6 +11,23 @@ type OrderedMap struct {
 	order []string // Maintain order of key-value insertion
 }
 
+// Retrieves the value associated with the given key.
+// It returns the value and a boolean indicating whether the key was found.
+func (orderedMap *OrderedMap) Get(key string) (interface{}, bool) {
+	value, exists := orderedMap.data[key]
+	return value, exists
+}
+
+// Returns the data, regardless of order.
+func (orderedMap *OrderedMap) GetData() map[string]interface{} {
+	return orderedMap.data
+}
+
+// Returns the order of keys as they were inserted.
+func (orderedMap *OrderedMap) GetOrder() []string {
+	return orderedMap.order
+}
+
 // Parse takes a raw byte slice and a starting index, and parses it into a map of key-value pairs.
 // The function handles continuation lines and ensures that values are correctly associated with their keys.
 // If a key already exists in the map, the function appends the new value to a list of values for that key.
