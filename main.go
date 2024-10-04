@@ -4,19 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"orf/cmd"
-	"orf/repository"
 	"os"
 )
 
 func main() {
 
 	if len(os.Args) == 1 {
-		fmt.Println("Invoke <help> subcommand")
-		os.Exit(1)
-	}
-
-	if len(os.Args) < 2 {
-		fmt.Println("Expected 'init' or 'log' subcommands")
+		cmd.Help()
 		os.Exit(1)
 	}
 
@@ -31,13 +25,15 @@ func main() {
 		}
 
 		pathArg := initCmd.Arg(0)
-		_, err := repository.CreateRepo(pathArg)
+
+		err := cmd.Init(pathArg)
 		if err != nil {
-			fmt.Printf("error initializing repo: %v\n", err)
+			fmt.Printf("error initializing repo: %v/n", err)
 			os.Exit(1)
 		}
 
 		fmt.Printf("Succesfully initialized repo\n")
+		os.Exit(1)
 
 	case "cat":
 		initCmd := flag.NewFlagSet("cat", flag.ExitOnError)
@@ -63,21 +59,18 @@ func main() {
 		}
 
 		fmt.Printf("%s\n", string(obj.Data))
+		os.Exit(1)
 
 	case "hash":
 		initCmd := flag.NewFlagSet("hash", flag.ExitOnError)
-
-		// Define the flags
 		writeFlag := initCmd.Bool("w", false, "Write to a file")
 		formatFlag := initCmd.String("format", "blob", "Specify the format (blob, commit, tag, tree)")
 
-		// Validate the formatFlag
 		if !contains([]string{"blob", "commit", "tag", "tree"}, *formatFlag) {
 			fmt.Println("incorrect type argument")
 			os.Exit(1)
 		}
 
-		// Parse the flags
 		initCmd.Parse(os.Args[2:])
 
 		if initCmd.NArg() < 1 {
@@ -94,14 +87,14 @@ func main() {
 		}
 
 		fmt.Printf("Object written with hash: %s\n", hash)
+		os.Exit(1)
 
-	case "log":
-		logCmd := flag.NewFlagSet("log", flag.ExitOnError)
-		logCmd.Parse(os.Args[2:])
-		fmt.Printf("Log Command\n")
+	case "help":
+		cmd.Help()
+		os.Exit(1)
 
 	default:
-		fmt.Println("Expected 'init' or 'log' subcommands")
+		fmt.Println("Expected valid subcommands")
 		os.Exit(1)
 	}
 }
