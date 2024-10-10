@@ -13,7 +13,7 @@ import (
 
 type MockRepository struct{}
 
-func (m *MockRepository) GetFile(directory string, create bool, paths ...string) (string, error) {
+func (m *MockRepository) GetFilePath(directory string, create bool, paths ...string) (string, error) {
 	return filepath.Join(directory, filepath.Join(paths...)), nil
 }
 

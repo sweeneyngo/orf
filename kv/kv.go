@@ -29,7 +29,7 @@ func (orderedMap *OrderedMap) GetOrder() []string {
 	return orderedMap.order
 }
 
-// Parse takes a raw byte slice and a starting index, and parses it into a map of key-value pairs.
+// Parse takes a raw byte slice and parses it into a map of key-value pairs.
 // The function handles continuation lines and ensures that values are correctly associated with their keys.
 // If a key already exists in the map, the function appends the new value to a list of values for that key.
 // If the map is nil, it initializes a new map before parsing.
@@ -98,11 +98,11 @@ func Serialize(orderedMap *OrderedMap) []byte {
 
 		// Normalize the value to a slice
 		var values []string
-		switch ty := data[key].(type) {
+		switch v := data[key].(type) {
 		case string:
-			values = []string{ty}
+			values = []string{v}
 		case []string:
-			values = ty
+			values = v
 		default:
 			continue
 		}

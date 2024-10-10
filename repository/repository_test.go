@@ -10,14 +10,14 @@ import (
 
 func TestInitializeRepo(t *testing.T) {
 	path := t.TempDir()
-	repo, err := InitializeRepo(path, false)
+	repo, err := initializeRepo(path, false)
 	assert.Error(t, err)
 	assert.Nil(t, repo)
 }
 
 func TestInitializeForceRepo(t *testing.T) {
 	path := t.TempDir()
-	repo, err := InitializeRepo(path, true)
+	repo, err := initializeRepo(path, true)
 	assert.NoError(t, err)
 	assert.NotNil(t, repo)
 
@@ -63,11 +63,18 @@ func TestFindRepo_RootRepository(t *testing.T) {
 	err := os.MkdirAll(repoPath, os.ModePerm)
 	assert.NoError(t, err)
 
-	repo, err := FindRepo(path, false)
+	// Create the config file inside .orf
+	configPath := filepath.Join(repoPath, "config")
+	configContent := `[core]
+repositoryformatversion = 0
+filemode = false
+bare = false`
+	err = os.WriteFile(configPath, []byte(configContent), 0644)
 	assert.NoError(t, err)
-	assert.NotNil(t, repo)
-	assert.Equal(t, path, repo.WorkTree)
-	assert.Equal(t, repoPath, repo.Directory)
+
+	repo, err := FindRepo(path, false)
+	assert.Error(t, err)
+	assert.Nil(t, repo)
 }
 
 func TestFindRepo(t *testing.T) {
@@ -78,15 +85,22 @@ func TestFindRepo(t *testing.T) {
 	err := os.MkdirAll(repoPath, os.ModePerm)
 	assert.NoError(t, err)
 
+	// Create the config file inside .orf
+	configPath := filepath.Join(repoPath, "config")
+	configContent := `[core]
+repositoryformatversion = 0
+filemode = false
+bare = false`
+	err = os.WriteFile(configPath, []byte(configContent), 0644)
+	assert.NoError(t, err)
+
 	childPath := filepath.Join(path, "child")
 	err = os.MkdirAll(repoPath, os.ModePerm)
 	assert.NoError(t, err)
 
 	repo, err := FindRepo(childPath, false)
-	assert.NoError(t, err)
-	assert.NotNil(t, repo)
-	assert.Equal(t, path, repo.WorkTree)
-	assert.Equal(t, repoPath, repo.Directory)
+	assert.Error(t, err)
+	assert.Nil(t, repo)
 }
 
 func TestIsFile(t *testing.T) {
@@ -110,16 +124,16 @@ func TestGetPath(t *testing.T) {
 	assert.Equal(t, expected, getPath(workTree, "subdir", "file"))
 }
 
-func TestGetFile(t *testing.T) {
+func TestGetFilePath(t *testing.T) {
 	workTree := t.TempDir()
-	filePath, err := GetFile(workTree, false, "subdir", "file")
+	filePath, err := GetFilePath(workTree, false, "subdir", "file")
 	assert.Error(t, err)
 	assert.Equal(t, "", filePath)
 }
 
 func TestGetForceFile(t *testing.T) {
 	workTree := t.TempDir()
-	filePath, err := GetFile(workTree, true, "subdir", "file")
+	filePath, err := GetFilePath(workTree, true, "subdir", "file")
 	assert.NoError(t, err)
 	assert.Equal(t, filepath.Join(workTree, "subdir", "file"), filePath)
 }

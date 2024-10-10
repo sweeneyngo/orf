@@ -25,3 +25,54 @@ func TestFindIndex(t *testing.T) {
 		}
 	}
 }
+func TestPrepend(t *testing.T) {
+	tests := []struct {
+		rawData  []byte
+		values   []byte
+		expected []byte
+	}{
+		{[]byte{1, 2, 3}, []byte{0}, []byte{0, 1, 2, 3}},
+		{[]byte{1, 2, 3}, []byte{4, 5}, []byte{4, 5, 1, 2, 3}},
+		{[]byte{}, []byte{1, 2, 3}, []byte{1, 2, 3}},
+		{[]byte{1, 2, 3}, []byte{}, []byte{1, 2, 3}},
+	}
+
+	for _, test := range tests {
+		result := Prepend(test.rawData, test.values...)
+		if !equal(result, test.expected) {
+			t.Errorf("Prepend(%v, %v) = %v; expected %v", test.rawData, test.values, result, test.expected)
+		}
+	}
+}
+
+func TestAppend(t *testing.T) {
+	tests := []struct {
+		rawData  []byte
+		values   []byte
+		expected []byte
+	}{
+		{[]byte{1, 2, 3}, []byte{4}, []byte{1, 2, 3, 4}},
+		{[]byte{1, 2, 3}, []byte{4, 5}, []byte{1, 2, 3, 4, 5}},
+		{[]byte{}, []byte{1, 2, 3}, []byte{1, 2, 3}},
+		{[]byte{1, 2, 3}, []byte{}, []byte{1, 2, 3}},
+	}
+
+	for _, test := range tests {
+		result := Append(test.rawData, test.values...)
+		if !equal(result, test.expected) {
+			t.Errorf("Append(%v, %v) = %v; expected %v", test.rawData, test.values, result, test.expected)
+		}
+	}
+}
+
+func equal(a, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}

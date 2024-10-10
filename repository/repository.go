@@ -16,57 +16,14 @@ type Repo struct {
 	Config    *ini.File
 }
 
-func InitializeRepo(path string, force bool) (*Repo, error) {
-
-	directory := filepath.Join(path, ".orf")
-
-	if !force && !isDir(directory) {
-		return nil, fmt.Errorf("not a Orf repository: %s", path)
-	}
-
-	// Get configuration path
-	configPath, err := GetFile(path, force, "config")
-	if err != nil {
-		return nil, fmt.Errorf("error getting config path: %w", err)
-	}
-
-	// Read configuration file .orf/config
-	config, err := readConfig(configPath, force)
-	if err != nil {
-		return nil, fmt.Errorf("error reading config file %s: %w", configPath, err)
-	}
-
-	return &Repo{
-		WorkTree:  path,
-		Directory: directory,
-		Config:    config,
-	}, nil
-}
-
+// CreateRepo creates a new repository at the specified path. It initializes the repository
+// by calling initializeRepo with the force flag set to true. If the directory already exists
+// and is not empty, it returns an error. It creates necessary directories and files for the
+// repository, including branches, objects, refs, description, HEAD, and config files.
+// It returns a pointer to the Repo struct if no errors have occurred.
 func CreateRepo(path string) (*Repo, error) {
 
-	repo, err := InitializeRepo(path, true)
-
-	if err != nil {
-		return nil, errors.New("error creating repo")
-	}
-
-	if info, err := os.Stat(repo.WorkTree); err == nil {
-
-		if !info.IsDir() {
-			return nil, fmt.Errorf("not a directory: %s", repo.WorkTree)
-		}
-
-		if _, err := os.Stat(repo.Directory); err == nil {
-			if entries, err := os.ReadDir(repo.Directory); err == nil && len(entries) > 0 {
-				return nil, fmt.Errorf("%s is not empty", repo.Directory)
-			}
-		}
-	} else {
-		if err := os.MkdirAll(repo.WorkTree, os.ModePerm); err != nil {
-			return nil, err
-		}
-	}
+	repo, _ := initializeRepo(path, true)
 
 	// Create directories
 	directories := []string{
@@ -109,10 +66,14 @@ func CreateRepo(path string) (*Repo, error) {
 	return repo, nil
 }
 
+// FindRepo searches for a repository from a given path and moves up the directory tree.
+// If a repository is found, it checks for validity then returns a pointer to the Repo struct.
+// If the force flag is set to false, it will return an error if no repository is found.
+// It returns a pointer to the repository once found.
 func FindRepo(path string, force bool) (*Repo, error) {
 
 	if isDir(filepath.Join(path, ".orf")) {
-		return InitializeRepo(path, true)
+		return initializeRepo(path, false)
 	}
 
 	parentPath := filepath.Clean(filepath.Join(path, ".."))
@@ -126,7 +87,63 @@ func FindRepo(path string, force bool) (*Repo, error) {
 	return FindRepo(parentPath, force)
 }
 
-func GetFile(WorkTree string, force bool, paths ...string) (string, error) {
+// initializeRepo initializes a repository at the given path. If the force flag is set to true,
+// it will create the repository even if the directory is not empty. It returns a pointer to the
+// Repo struct if no errors have occurred.
+func initializeRepo(path string, force bool) (*Repo, error) {
+
+	directory := filepath.Join(path, ".orf")
+
+	if !force && !isDir(directory) {
+		return nil, fmt.Errorf("not a Orf repository: %s", path)
+	}
+
+	// Get configuration path
+	configPath, err := GetFilePath(path, force, "config")
+	if err != nil {
+		return nil, fmt.Errorf("error getting config path: %w", err)
+	}
+
+	// Read configuration file .orf/config
+	config, err := readConfig(configPath, force)
+	if err != nil {
+		return nil, fmt.Errorf("error reading config file %s: %w", configPath, err)
+	}
+
+	return &Repo{
+		WorkTree:  path,
+		Directory: directory,
+		Config:    config,
+	}, nil
+}
+
+// readConfig reads the configuration file from the given path and returns an ini.File object.
+// If the force flag is set to false, it will return an error if the configuration file does not exist
+// or if the repository format version is unsupported.
+func readConfig(path string, force bool) (*ini.File, error) {
+	file := filepath.Join(path, "config")
+	if !force && !isFile(file) {
+		return nil, errors.New("no configuration file in path")
+	}
+
+	config, err := ini.Load(file)
+	if !force && err != nil {
+		return nil, err
+	}
+
+	if !force {
+		version, err := config.Section("core").Key("repositoryformatversion").Int()
+		if err != nil || version != 0 {
+			return nil, fmt.Errorf("unsupported repositoryformatversion: %d", version)
+		}
+	}
+
+	return config, nil
+}
+
+// GetFilePath returns the path to a file within the repository's work tree.
+// It will create the directory structure leading to the file (barring the actual file), ensuring it exists.
+func GetFilePath(WorkTree string, force bool, paths ...string) (string, error) {
 
 	if _, err := getDir(WorkTree, force, paths[:len(paths)-1]...); err != nil {
 		return "", err
@@ -135,30 +152,8 @@ func GetFile(WorkTree string, force bool, paths ...string) (string, error) {
 	return getPath(WorkTree, paths...), nil
 }
 
-func isFile(path string) bool {
-	info, err := os.Stat(path)
-
-	if err != nil {
-		return false
-	}
-
-	return !info.IsDir()
-}
-
-func isDir(path string) bool {
-	info, err := os.Stat(path)
-
-	if err != nil {
-		return false
-	}
-
-	return info.IsDir()
-}
-
-func getPath(WorkTree string, paths ...string) string {
-	return filepath.Join(append([]string{WorkTree}, paths...)...)
-}
-
+// getDir ensures that the directory structure exists for the given path elements.
+// If the force flag is true, it will create the directory structure if it does not exist.
 func getDir(WorkTree string, force bool, paths ...string) (string, error) {
 
 	path := getPath(WorkTree, paths...)
@@ -182,23 +177,29 @@ func getDir(WorkTree string, force bool, paths ...string) (string, error) {
 	return path, nil
 }
 
-func readConfig(path string, force bool) (*ini.File, error) {
-	file := filepath.Join(path, "config")
-	if !force && !isFile(file) {
-		return nil, errors.New("no configuration file in path")
+// getPath constructs a filepath by joining the workTree with variable path elements.
+func getPath(WorkTree string, paths ...string) string {
+	return filepath.Join(append([]string{WorkTree}, paths...)...)
+}
+
+// isFile checks if the given path corresponds to a file.
+func isFile(path string) bool {
+	info, err := os.Stat(path)
+
+	if err != nil {
+		return false
 	}
 
-	config, err := ini.Load(file)
-	if !force && err != nil {
-		return nil, err
+	return !info.IsDir()
+}
+
+// isDir checks if the given path corresponds to a directory.
+func isDir(path string) bool {
+	info, err := os.Stat(path)
+
+	if err != nil {
+		return false
 	}
 
-	if !force {
-		version, err := config.Section("core").Key("repositoryformatversion").Int()
-		if err != nil || version != 0 {
-			return nil, fmt.Errorf("unsupported repositoryformatversion: %d", version)
-		}
-	}
-
-	return config, nil
+	return info.IsDir()
 }

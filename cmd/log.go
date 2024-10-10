@@ -17,7 +17,7 @@ func Log(commit string) error {
 	fmt.Println("  node[shape=rect]")
 
 	// Start the log from the commit hash provided in args
-	log(repo, commit, make(map[string]struct{}))
+	log(repo, object.FindObject(repo, commit, "commit", false), make(map[string]struct{}))
 
 	fmt.Println("}")
 
@@ -41,7 +41,7 @@ func log(repo *repository.Repo, hash string, seen map[string]struct{}) error {
 
 	c, ok := commit.(*object.Commit)
 	if !ok {
-		return fmt.Errorf("commit is not of type Commit")
+		return fmt.Errorf("unexpected type %T for Commit, expected *Commit", commit)
 	}
 
 	message, err := extractMessage(c)
@@ -63,13 +63,13 @@ func log(repo *repository.Repo, hash string, seen map[string]struct{}) error {
 
 	// Recursively check all parents from commit
 	var parentHashes []string
-	switch ty := parents.(type) {
+	switch v := parents.(type) {
 	case string:
-		parentHashes = []string{ty}
+		parentHashes = []string{v}
 	case []string:
-		parentHashes = ty
+		parentHashes = v
 	default:
-		return fmt.Errorf("unexpected type for parent: %v", ty)
+		return fmt.Errorf("unexpected type for parent: %v", v)
 	}
 
 	for _, parentHash := range parentHashes {
