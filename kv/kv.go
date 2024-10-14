@@ -29,6 +29,13 @@ func (orderedMap *OrderedMap) GetOrder() []string {
 	return orderedMap.order
 }
 
+func CreateOrderedMap() *OrderedMap {
+	return &OrderedMap{
+		data:  make(map[string]interface{}),
+		order: []string{},
+	}
+}
+
 // Parse takes a raw byte slice and parses it into a map of key-value pairs.
 // The function handles continuation lines and ensures that values are correctly associated with their keys.
 // If a key already exists in the map, the function appends the new value to a list of values for that key.
@@ -36,10 +43,7 @@ func (orderedMap *OrderedMap) GetOrder() []string {
 func Parse(rawData []byte, startIndex int, dct *OrderedMap) (*OrderedMap, error) {
 
 	if dct == nil {
-		dct = &OrderedMap{
-			data:  make(map[string]interface{}),
-			order: []string{},
-		}
+		dct = CreateOrderedMap()
 	}
 
 	spaceIndex := utils.FindIndex(rawData, startIndex, ' ')

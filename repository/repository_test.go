@@ -140,7 +140,7 @@ func TestGetForceFile(t *testing.T) {
 
 func TestGetDir(t *testing.T) {
 	workTree := t.TempDir()
-	dirPath, err := getDir(workTree, false, "subdir")
+	dirPath, err := GetDir(workTree, false, "subdir")
 	assert.Error(t, err)
 	assert.Equal(t, "", dirPath)
 }
@@ -151,14 +151,14 @@ func TestGetNotDir(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.Remove(file.Name())
 
-	dirPath, err := getDir(workTree, false, file.Name())
+	dirPath, err := GetDir(workTree, false, file.Name())
 	assert.Error(t, err)
 	assert.Equal(t, "", dirPath)
 }
 
 func TestGetForceDir(t *testing.T) {
 	workTree := t.TempDir()
-	dirPath, err := getDir(workTree, true, "subdir")
+	dirPath, err := GetDir(workTree, true, "subdir")
 	assert.NoError(t, err)
 	assert.Equal(t, filepath.Join(workTree, "subdir"), dirPath)
 }

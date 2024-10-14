@@ -126,6 +126,10 @@ func main() {
 		}
 		os.Exit(1)
 
+	case "ls-refs":
+		cmd.ListRefs()
+		os.Exit(1)
+
 	case "checkout":
 		initCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
 

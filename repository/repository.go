@@ -145,16 +145,16 @@ func readConfig(path string, force bool) (*ini.File, error) {
 // It will create the directory structure leading to the file (barring the actual file), ensuring it exists.
 func GetFilePath(WorkTree string, force bool, paths ...string) (string, error) {
 
-	if _, err := getDir(WorkTree, force, paths[:len(paths)-1]...); err != nil {
+	if _, err := GetDir(WorkTree, force, paths[:len(paths)-1]...); err != nil {
 		return "", err
 	}
 
 	return getPath(WorkTree, paths...), nil
 }
 
-// getDir ensures that the directory structure exists for the given path elements.
+// GetDir ensures that the directory structure exists for the given path elements.
 // If the force flag is true, it will create the directory structure if it does not exist.
-func getDir(WorkTree string, force bool, paths ...string) (string, error) {
+func GetDir(WorkTree string, force bool, paths ...string) (string, error) {
 
 	path := getPath(WorkTree, paths...)
 	info, err := os.Stat(path)
