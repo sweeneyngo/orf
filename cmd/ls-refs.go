@@ -140,3 +140,19 @@ func showRef(repo *repository.Repo, refs *kv.OrderedMap, withHash bool, prefix s
 		}
 	}
 }
+
+func createRef(repo *repository.Repo, refName string, target string) error {
+
+	refPath, err := repository.GetFilePath(repo.Directory, true, "refs", refName)
+	if err != nil {
+		return err
+	}
+
+	// Open file in refs/refName, then write hash with newline
+	err = os.WriteFile(refPath, []byte(target+"\n"), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

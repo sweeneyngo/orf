@@ -130,6 +130,26 @@ func main() {
 		cmd.ListRefs()
 		os.Exit(1)
 
+	case "tag":
+		initCmd := flag.NewFlagSet("tag", flag.ExitOnError)
+		willCreateTagFlag := initCmd.Bool("a", false, "Create an annotated tag")
+		initCmd.Parse(os.Args[2:])
+
+		if initCmd.NArg() < 2 {
+			fmt.Println("expected tag & target object argument")
+			os.Exit(1)
+		}
+
+		tagArg := initCmd.Arg(0)
+		targetArg := initCmd.Arg(1)
+
+		err := cmd.Tag(tagArg, targetArg, *willCreateTagFlag)
+		if err != nil {
+			fmt.Printf("error creating tag: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(1)
+
 	case "checkout":
 		initCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
 

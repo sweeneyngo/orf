@@ -25,7 +25,7 @@ func (tag *Tag) GetKVData() *kv.OrderedMap {
 }
 
 // Creates a new tag object with empty key-value data.
-func Createtag(data []byte) *Tag {
+func CreateTag(data []byte) *Tag {
 	return &Tag{
 		Base: Base{
 			format: "tag",             // Set the format for a blob
@@ -34,6 +34,9 @@ func Createtag(data []byte) *Tag {
 		},
 		kvData: nil,
 	}
+}
+func (tag *Tag) SetKVData(key string, value interface{}) {
+	tag.kvData.Add(key, value)
 }
 
 func (tag *Tag) Serialize() []byte {
