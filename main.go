@@ -150,6 +150,31 @@ func main() {
 		}
 		os.Exit(1)
 
+	case "rev-parse":
+		initCmd := flag.NewFlagSet("rev-parse", flag.ExitOnError)
+		typeFlag := initCmd.String("wyag-type", "", "Specify the type of object to return")
+
+		initCmd.Parse(os.Args[2:])
+		if initCmd.NArg() < 1 {
+			fmt.Println("expected ref name argument")
+			os.Exit(1)
+		}
+
+		refArg := initCmd.Arg(0)
+
+		// Check if typeFlag is [blob, commit, tag, tree]
+		if *typeFlag != "" && !contains([]string{"blob", "commit", "tag", "tree"}, *typeFlag) {
+			fmt.Println("incorrect type argument")
+			os.Exit(1)
+		}
+
+		err := cmd.RevParse(refArg, *typeFlag)
+		if err != nil {
+			fmt.Printf("error parsing ref: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(1)
+
 	case "checkout":
 		initCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
 

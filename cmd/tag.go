@@ -16,13 +16,13 @@ func Tag(name string, target string, willCreateTarget bool) error {
 	if name != "" {
 		createTag(repo, name, target, willCreateTarget)
 	} else {
-		refs, err := listRefs(repo, "")
+		refs, err := object.ListRefs(repo, "")
 		if err != nil {
 			return fmt.Errorf("error listing refs: %v", err)
 		}
 		tags, isFound := refs.Get("tags")
 		if isFound {
-			showRef(repo, tags.(*kv.OrderedMap), true, "tags")
+			object.ShowRef(repo, tags.(*kv.OrderedMap), true, "tags")
 		}
 	}
 
@@ -57,9 +57,9 @@ func createTag(repo *repository.Repo, name string, target string, willCreateTarg
 		if err != nil {
 			fmt.Printf("error writing tag object: %v", err)
 		}
-		createRef(repo, "tags"+name, tagHash)
+		object.CreateRef(repo, "tags"+name, tagHash)
 
 	} else {
-		createRef(repo, "tags"+name, hash)
+		object.CreateRef(repo, "tags"+name, hash)
 	}
 }
