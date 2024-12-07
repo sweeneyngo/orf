@@ -32,3 +32,22 @@ func Append(rawData []byte, values ...byte) []byte {
 
 	return append(rawData, result...)
 }
+
+func Contains(slice []string, str string) bool {
+	for _, s := range slice {
+		if s == str {
+			return true
+		}
+	}
+	return false
+}
+
+func RemoveFromSlice(slice []string, str string) []string {
+	var result []string
+	for _, s := range slice {
+		if s != str {
+			result = append(result, s)
+		}
+	}
+	return result
+}

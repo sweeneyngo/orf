@@ -25,14 +25,14 @@ func HashObject(path string, format string, store bool) (string, error) {
 		return "", fmt.Errorf("error reading file: %v", err)
 	}
 
-	hash, err := getHash(data, format, directory)
+	hash, err := GetHash(data, format, directory)
 	if err != nil {
 		return "", fmt.Errorf("error getting hash: %v", err)
 	}
 	return hash, nil
 }
 
-func getHash(data []byte, format string, directory string) (string, error) {
+func GetHash(data []byte, format string, directory string) (string, error) {
 
 	var o object.Object
 	switch format {

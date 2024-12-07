@@ -11,13 +11,13 @@ import (
 // Represents a tree object, with leaves representing all Leaf objects.
 type Tree struct {
 	Base
-	leaves []*Leaf
+	Leaves []*Leaf
 }
 
 type Leaf struct {
-	mode []byte
-	path string
-	hash string
+	Mode []byte
+	Path string
+	Hash string
 }
 
 func CreateTree(data []byte) *Tree {
@@ -27,7 +27,7 @@ func CreateTree(data []byte) *Tree {
 			size:   uint32(len(data)), // Set the size based on the data length
 			data:   data,              // Set the data directly in the Object
 		},
-		leaves: []*Leaf{},
+		Leaves: []*Leaf{},
 	}
 }
 
@@ -43,33 +43,17 @@ func (tree *Tree) GetData() []byte {
 	return tree.data
 }
 
-func (tree *Tree) GetLeaves() []*Leaf {
-	return tree.leaves
-}
-
-func (leaf *Leaf) GetMode() []byte {
-	return leaf.mode
-}
-
-func (leaf *Leaf) GetPath() string {
-	return leaf.path
-}
-
-func (leaf *Leaf) GetHash() string {
-	return leaf.hash
-}
-
 func (tree *Tree) Serialize() ([]byte, error) {
-	sort.Sort(ByPath(tree.leaves))
+	sort.Sort(ByPath(tree.Leaves))
 	output := []byte{}
 
-	for _, leaf := range tree.leaves {
-		output = utils.Append(output, leaf.mode...)
+	for _, leaf := range tree.Leaves {
+		output = utils.Append(output, leaf.Mode...)
 		output = utils.Append(output, ' ')
-		output = utils.Append(output, []byte(leaf.path)...)
+		output = utils.Append(output, []byte(leaf.Path)...)
 		output = utils.Append(output, '\x00')
 
-		hashBytes, err := convertHexToBytes(leaf.hash)
+		hashBytes, err := convertHexToBytes(leaf.Hash)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +70,7 @@ func (tree *Tree) Deserialize(data []byte) error {
 		return err
 	}
 
-	tree.leaves = leaves
+	tree.Leaves = leaves
 	return nil
 }
 
@@ -127,9 +111,9 @@ func parseLeaf(rawData []byte, startIndex int) (int, *Leaf, error) {
 	hash := hex.EncodeToString(rawData[pathIndex+1 : pathIndex+21])
 
 	return pathIndex + 21, &Leaf{
-		mode: mode,
-		path: string(path),
-		hash: hash,
+		Mode: mode,
+		Path: string(path),
+		Hash: hash,
 	}, nil
 }
 
@@ -141,16 +125,16 @@ type ByPath []*Leaf
 func (p ByPath) Len() int { return len(p) }
 func (p ByPath) Less(i, j int) bool {
 
-	if isModeDirectory(p[i].mode) && !isModeDirectory(p[j].mode) {
+	if isModeDirectory(p[i].Mode) && !isModeDirectory(p[j].Mode) {
 		return true
 	}
 
-	if !isModeDirectory(p[i].mode) && isModeDirectory(p[j].mode) {
+	if !isModeDirectory(p[i].Mode) && isModeDirectory(p[j].Mode) {
 		return false
 	}
 
 	// If both are the same mode, sort by path
-	return p[i].path < p[j].path
+	return p[i].Path < p[j].Path
 }
 
 func (p ByPath) Swap(i, j int) { p[i], p[j] = p[j], p[i] }

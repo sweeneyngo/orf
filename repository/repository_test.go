@@ -108,8 +108,8 @@ func TestIsFile(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.Remove(file.Name())
 
-	assert.True(t, isFile(file.Name()))
-	assert.False(t, isFile("/non/existent/path"))
+	assert.True(t, IsFile(file.Name()))
+	assert.False(t, IsFile("/non/existent/path"))
 }
 
 func TestIsDir(t *testing.T) {

@@ -39,7 +39,7 @@ func listTree(repo *repository.Repo, ref string, recursive bool, prefix string) 
 		return fmt.Errorf("unexpected type %T for tree, expected *Tree", tree)
 	}
 
-	for _, leaf := range t.GetLeaves() {
+	for _, leaf := range t.Leaves {
 		leafMode := getLeafMode(leaf)
 		leafType, err := getLeafType(leafMode)
 		if err != nil {
@@ -49,9 +49,9 @@ func listTree(repo *repository.Repo, ref string, recursive bool, prefix string) 
 		// If not recursive or the leaf is not a tree, print its details
 		if !recursive || leafType != "tree" {
 			paddedMode := fmt.Sprintf("%06s", string(leafMode)) // Pad mode to 6 digits
-			fmt.Printf("%s %s %s\t%s\n", paddedMode, leafType, leaf.GetHash(), filepath.Join(prefix, leaf.GetPath()))
+			fmt.Printf("%s %s %s\t%s\n", paddedMode, leafType, leaf.Hash, filepath.Join(prefix, leaf.Path))
 		} else {
-			err = listTree(repo, leaf.GetHash(), recursive, filepath.Join(prefix, leaf.GetPath()))
+			err = listTree(repo, leaf.Hash, recursive, filepath.Join(prefix, leaf.Path))
 			if err != nil {
 				return err
 			}
@@ -62,10 +62,10 @@ func listTree(repo *repository.Repo, ref string, recursive bool, prefix string) 
 
 // getLeafMode extracts the mode prefix from a leaf, either 1 byte or 2 bytes.
 func getLeafMode(leaf *object.Leaf) []byte {
-	if len(leaf.GetMode()) == 5 {
-		return leaf.GetMode()[0:1]
+	if len(leaf.Mode) == 5 {
+		return leaf.Mode[0:1]
 	}
-	return leaf.GetMode()[0:2]
+	return leaf.Mode[0:2]
 }
 
 // getLeafType returns the type of the leaf based on its mode prefix.

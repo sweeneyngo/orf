@@ -124,13 +124,13 @@ func getTreeFromCommit(commit *object.Commit, repo *repository.Repo) (*object.Tr
 
 // checkoutTree recursively checks out the tree into the specified directory.
 func checkoutTree(repo *repository.Repo, tree *object.Tree, path string) error {
-	for _, item := range tree.GetLeaves() {
-		obj, err := object.ReadObject(repo.Directory, item.GetHash())
+	for _, item := range tree.Leaves {
+		obj, err := object.ReadObject(repo.Directory, item.Hash)
 		if err != nil {
-			return fmt.Errorf("failed to read object %s: %v", item.GetHash(), err)
+			return fmt.Errorf("failed to read object %s: %v", item.Hash, err)
 		}
 
-		dest := filepath.Join(path, item.GetPath())
+		dest := filepath.Join(path, item.Path)
 
 		// Process tree (directory) or blob (file)
 		switch obj.GetFormat() {

@@ -130,6 +130,17 @@ func main() {
 		cmd.ListRefs()
 		os.Exit(1)
 
+	case "ls-files":
+		initCmd := flag.NewFlagSet("ls-files", flag.ExitOnError)
+		isVerboseFlag := initCmd.Bool("v", false, "List all files in the index")
+		err := cmd.ListFiles(*isVerboseFlag)
+		if err != nil {
+			fmt.Printf("error listing files: %v\n", err)
+			os.Exit(1)
+		}
+
+		os.Exit(1)
+
 	case "tag":
 		initCmd := flag.NewFlagSet("tag", flag.ExitOnError)
 		willCreateTagFlag := initCmd.Bool("a", false, "Create an annotated tag")
@@ -195,6 +206,61 @@ func main() {
 		}
 		os.Exit(1)
 
+	case "status":
+		err := cmd.Status()
+		if err != nil {
+			fmt.Printf("error getting status: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(1)
+
+	case "add":
+		initCmd := flag.NewFlagSet("add", flag.ExitOnError)
+		initCmd.Parse(os.Args[2:])
+
+		// Parse for at least one path argument (paths)
+		if initCmd.NArg() < 1 {
+			fmt.Println("expected paths argument")
+			os.Exit(1)
+		}
+
+		pathsArg := initCmd.Args()
+
+		err := cmd.Add(pathsArg)
+		if err != nil {
+			fmt.Printf("error adding files: %v\n", err)
+			os.Exit(1)
+		}
+
+	case "rm":
+		initCmd := flag.NewFlagSet("rm", flag.ExitOnError)
+		initCmd.Parse(os.Args[2:])
+		if initCmd.NArg() < 1 {
+			fmt.Println("expected paths argument")
+			os.Exit(1)
+		}
+
+		pathsArg := initCmd.Args()
+
+		err := cmd.Remove(pathsArg)
+		if err != nil {
+			fmt.Printf("error removing files: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(1)
+
+	case "commit":
+		initCmd := flag.NewFlagSet("commit", flag.ExitOnError)
+		messageFlag := initCmd.String("m", "", "Commit message")
+		initCmd.Parse(os.Args[2:])
+
+		err := cmd.Commit(*messageFlag)
+		if err != nil {
+			fmt.Printf("error committing files: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(1)
+
 	case "help":
 		cmd.Help()
 		os.Exit(1)
@@ -203,6 +269,7 @@ func main() {
 		fmt.Println("Expected valid subcommands")
 		os.Exit(1)
 	}
+
 }
 
 func contains(candidates []string, target string) bool {

@@ -23,19 +23,19 @@ func TestCreateTree(t *testing.T) {
 		t.Errorf("Expected data %s, got %s", data, tree.GetData())
 	}
 
-	if len(tree.GetLeaves()) != 0 {
-		t.Errorf("Expected 0 leaves, got %d", len(tree.GetLeaves()))
+	if len(tree.Leaves) != 0 {
+		t.Errorf("Expected 0 leaves, got %d", len(tree.Leaves))
 	}
 }
 
 func TestTreeSerialization(t *testing.T) {
 	tree := CreateTree([]byte{})
 	leaf := &Leaf{
-		mode: []byte("100644"),
-		path: "file.txt",
-		hash: "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+		Mode: []byte("100644"),
+		Path: "file.txt",
+		Hash: "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
 	}
-	tree.leaves = append(tree.leaves, leaf)
+	tree.Leaves = append(tree.Leaves, leaf)
 
 	serialized, err := tree.Serialize()
 	if err != nil {
@@ -57,37 +57,37 @@ func TestTreeDeserialization(t *testing.T) {
 		t.Fatalf("Deserialization failed: %v", err)
 	}
 
-	if len(tree.GetLeaves()) != 1 {
-		t.Fatalf("Expected 1 leaf, got %d", len(tree.GetLeaves()))
+	if len(tree.Leaves) != 1 {
+		t.Fatalf("Expected 1 leaf, got %d", len(tree.Leaves))
 	}
 
-	leaf := tree.GetLeaves()[0]
-	if string(leaf.GetMode()) != "100644" {
-		t.Errorf("Expected mode '100644', got %s", leaf.GetMode())
+	leaf := tree.Leaves[0]
+	if string(leaf.Mode) != "100644" {
+		t.Errorf("Expected mode '100644', got %s", leaf.Mode)
 	}
 
-	if leaf.GetPath() != "file.txt" {
-		t.Errorf("Expected path 'file.txt', got %s", leaf.GetPath())
+	if leaf.Path != "file.txt" {
+		t.Errorf("Expected path 'file.txt', got %s", leaf.Path)
 	}
 
-	if leaf.GetHash() != "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391" {
-		t.Errorf("Expected hash 'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391', got %s", leaf.GetHash())
+	if leaf.Path != "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391" {
+		t.Errorf("Expected hash 'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391', got %s", leaf.Path)
 	}
 }
 
 func TestByPathSorting(t *testing.T) {
 	leaves := []*Leaf{
-		{mode: []byte("100644"), path: "b.txt"},
-		{mode: []byte("100644"), path: "a.txt"},
-		{mode: []byte("40000"), path: "dir"},
+		{Mode: []byte("100644"), Path: "b.txt"},
+		{Mode: []byte("100644"), Path: "a.txt"},
+		{Mode: []byte("40000"), Path: "dir"},
 	}
 
 	sort.Sort(ByPath(leaves))
 
 	expectedPaths := []string{"a.txt", "b.txt", "dir"}
 	for i, leaf := range leaves {
-		if leaf.GetPath() != expectedPaths[i] {
-			t.Errorf("Expected path %s, got %s", expectedPaths[i], leaf.GetPath())
+		if leaf.Path != expectedPaths[i] {
+			t.Errorf("Expected path %s, got %s", expectedPaths[i], leaf.Path)
 		}
 	}
 }

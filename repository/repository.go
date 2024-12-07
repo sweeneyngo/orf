@@ -122,7 +122,7 @@ func initializeRepo(path string, force bool) (*Repo, error) {
 // or if the repository format version is unsupported.
 func readConfig(path string, force bool) (*ini.File, error) {
 	file := filepath.Join(path, "config")
-	if !force && !isFile(file) {
+	if !force && !IsFile(file) {
 		return nil, errors.New("no configuration file in path")
 	}
 
@@ -183,7 +183,7 @@ func getPath(WorkTree string, paths ...string) string {
 }
 
 // isFile checks if the given path corresponds to a file.
-func isFile(path string) bool {
+func IsFile(path string) bool {
 	info, err := os.Stat(path)
 
 	if err != nil {
