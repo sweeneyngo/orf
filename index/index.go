@@ -119,7 +119,7 @@ func ReadIndex(repo *repository.Repo) (*Index, error) {
 		mode := binary.BigEndian.Uint32(entryBytes[26:28])
 		entry.ModeType = mode >> 12
 
-		// Check if mode type is (regular file, symbolic link, gitlink)
+		// Check if mode type is (regular file, symbolic link, orflink)
 		if entry.ModeType != 0b1000 && entry.ModeType != 0b1010 && entry.ModeType != 0b1110 {
 			return nil, fmt.Errorf("invalid mode type in index entry")
 		}

@@ -34,13 +34,13 @@ func Commit(message string) error {
 
 	parent := object.FindObject(repo, "HEAD", "commit", false)
 
-	// Get the author from the git config (simulated here)
-	config, err := readGitConfig()
+	// Get the author from the orf config (simulated here)
+	config, err := readOrfConfig()
 	if err != nil {
 		return err
 	}
 
-	author := getUserGitConfig(config)
+	author := getUserOrfConfig(config)
 
 	// Create the commit
 	commit, err := WriteCommit(repo, tree, parent, author, time.Now(), message)
@@ -108,7 +108,7 @@ func WriteCommit(repo *repository.Repo, tree, parent, author string, timestamp t
 	commit.GetKVData().Add("]", []byte(authorString))
 
 	// Simulate writing the commit object to the object store and return a SHA hash
-	// In a real implementation, this would interact with the Git object store.
+	// In a real implementation, this would interact with the Orf object store.
 	return "dummy-sha-commit", nil
 }
 
@@ -186,7 +186,7 @@ func TreeFromIndex(repo *repository.Repo, indexEntries []index.IndexEntry) (stri
 	return sha, nil
 }
 
-func readGitConfig() (*ini.File, error) {
+func readOrfConfig() (*ini.File, error) {
 	// Get the XDG_CONFIG_HOME environment variable or default to ~/.config
 	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
 	if xdgConfigHome == "" {
@@ -200,8 +200,8 @@ func readGitConfig() (*ini.File, error) {
 
 	// Construct the list of config files to check
 	configFiles := []string{
-		filepath.Join(xdgConfigHome, "git", "config"),
-		filepath.Join(os.Getenv("HOME"), ".gitconfig"),
+		filepath.Join(xdgConfigHome, "orf", "config"),
+		filepath.Join(os.Getenv("HOME"), ".orfconfig"),
 	}
 
 	// Read the configuration files using the ini package
@@ -219,13 +219,13 @@ func readGitConfig() (*ini.File, error) {
 	}
 
 	if config == nil {
-		return nil, fmt.Errorf("no valid git configuration files found")
+		return nil, fmt.Errorf("no valid orf configuration files found")
 	}
 
 	return config, nil
 }
 
-func getUserGitConfig(config *ini.File) string {
+func getUserOrfConfig(config *ini.File) string {
 	// Check if the "user" section exists
 	userSection := config.Section("user")
 	if userSection != nil {

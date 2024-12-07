@@ -89,7 +89,7 @@ func printIndexHead(repo *repository.Repo, index *index.Index) error {
 
 func printIndexWorkTree(repo *repository.Repo, index *index.Index) error {
 	fmt.Println("Changes not staged for commit:")
-	gitDirPrefix := repo.Directory + string(os.PathSeparator)
+	orfDirPrefix := repo.Directory + string(os.PathSeparator)
 
 	// List all files in the working tree
 	var allFiles []string
@@ -100,8 +100,8 @@ func printIndexWorkTree(repo *repository.Repo, index *index.Index) error {
 			return err
 		}
 
-		// Skip files in the .git directory or its subdirectories
-		if root == repo.Directory || strings.HasPrefix(root, gitDirPrefix) {
+		// Skip files in the .orf directory or its subdirectories
+		if root == repo.Directory || strings.HasPrefix(root, orfDirPrefix) {
 			return filepath.SkipDir
 		}
 

@@ -23,7 +23,7 @@ func ListTree(tree string, recursive bool) error {
 	return nil
 }
 
-// listTree recursively lists the tree objects in a git repository.
+// listTree recursively lists the tree objects in a orf repository.
 // It prints the tree/commit/leaf information with the appropriate padding, type, and path.
 func listTree(repo *repository.Repo, ref string, recursive bool, prefix string) error {
 

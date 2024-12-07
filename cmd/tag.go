@@ -31,7 +31,7 @@ func Tag(name string, target string, willCreateTarget bool) error {
 
 func createTag(repo *repository.Repo, name string, target string, willCreateTarget bool) {
 
-	// Get the GitObject from the object reference
+	// Get the OrfObject from the object reference
 	hash := object.FindObject(repo, target, "commit", true)
 	obj, err := object.ReadObject(repo.Directory, hash)
 	if err != nil {
